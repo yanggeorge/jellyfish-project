@@ -1,0 +1,17 @@
+{
+    // 强烈推荐使用工作区相对路径，这样团队其他人 clone 下来不用改任何配置
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
+
+    // 下面这些顺便配上，几乎所有 FastAPI 项目都会用到
+    "python.autoComplete.extraPaths": ["${workspaceFolder}/backend"],
+    "python.analysis.extraPaths": ["${workspaceFolder}/backend"],
+
+    // 自动使用选中的解释器激活虚拟环境（终端里会自动执行 source venv/bin/activate）
+    "python.terminal.activateEnvironment": true,
+
+    // 测试框架（如果你用 pytest）
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "backend/tests"
+    ]
+}
