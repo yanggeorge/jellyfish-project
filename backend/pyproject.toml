@@ -1,0 +1,12 @@
+# backend/pyproject.toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jellyfish-backend"
+version = "0.1.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = "."
