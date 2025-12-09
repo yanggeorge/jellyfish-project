@@ -1,0 +1,126 @@
+# ===============================================
+# 1. 操作系统 & IDE 通用配置 (OS & IDE)
+# ===============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains (PyCharm, WebStorm, etc.)
+.idea/
+*.iml
+
+# ===============================================
+# 2. 敏感信息 & 环境变量 (Security & Env)
+# ===============================================
+# 务必忽略这些文件，防止密钥泄漏
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# ===============================================
+# 3. 后端 Python/FastAPI 相关 (Backend)
+# ===============================================
+# Python 字节码
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C 扩展
+*.so
+
+# 虚拟环境 (Virtual Environments)
+# 匹配常见的虚拟环境文件夹名称
+venv/
+.venv/
+env/
+.env/
+backend/venv/
+backend/.venv/
+
+# 分发与打包
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# 单元测试与覆盖率
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Jupyter Notebook (如果用于数据分析)
+.ipynb_checkpoints
+
+# Pytest & MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# SQLAlchemy/Alembic (如果使用 SQLite 或本地生成的迁移脚本缓存)
+*.sqlite3
+
+# ===============================================
+# 4. 前端 React/Node 相关 (Frontend)
+# ===============================================
+# 依赖包 (体积巨大，绝对不要提交)
+node_modules/
+*/node_modules/
+
+# 构建输出 (Build Output)
+dist/
+build/
+frontend/dist/
+
+# 日志文件
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 测试覆盖率
+coverage/
+
+# 临时文件
+.eslintcache
+.stylelintcache
+
+# ===============================================
+# 5. 数据库 & Docker 相关 (DB & Docker)
+# ===============================================
+# 如果你在项目目录下挂载了 Postgres 的数据卷，必须忽略它
+pgdata/
+postgres_data/
+*.sql
+*.dump
+
+# Docker 本地覆盖配置
+docker-compose.override.yml
+
+# ===============================================
+# 6. 其他 (Misc)
+# ===============================================
+# 临时文件
+*.log
+*.tmp
+*.bak
+*.swp
