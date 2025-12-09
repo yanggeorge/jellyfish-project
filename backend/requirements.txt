@@ -7,3 +7,4 @@ pandas
 numpy
 geoalchemy2
 pytest
+httpx

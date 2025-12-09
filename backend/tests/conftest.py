@@ -1,54 +1,67 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 
-# 必须导入 app 和 Base
-from app.main import app, get_db
-from app.database import Base
 from app import models
+from app.database import Base
+from app.main import app, get_db
 
-# 使用 SQLite 内存数据库进行测试 (注意：SQLite 不支持 PostGIS 的 Geometry 类型)
-# 如果模型中包含 Geometry 字段，在 SQLite 测试中可能会报错。
-# **解决方案**：针对测试，我们推荐使用 Docker 起一个独立的测试用例 PG 库。
-# **但在本 Demo 中**，为了让你可以直接跑通，我们假设你有一个本地 PG 测试库，
-# 或者我们可以 Mock 掉 Geometry 字段的写入。
-
-# 这里配置为连接本地的一个测试库 (请确保该库存在且有 postgis 扩展)
+# 确保配置正确
 SQLALCHEMY_TEST_DATABASE_URL = "postgresql://admin:admin@localhost:5432/jellyfish_test"
 
 engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 @pytest.fixture(scope="module")
 def test_db():
-    # 1. 创建表结构
-    # 注意：确保测试库已经安装了 postgis extension: CREATE EXTENSION postgis;
+    # 1. 开启 PostGIS 扩展
+    with engine.connect() as connection:
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+        connection.commit()
+
+    # 2. 创建表结构
     Base.metadata.create_all(bind=engine)
-    
-    # 2. 提供 Session
+
+    # 3. 提供 Session
     db = TestingSessionLocal()
-    
-    # 3. 预制一些基础 GIS 数据以防外键报错
-    if not db.query(models.MarineZone).filter_by(id=999).first():
-        zone = models.MarineZone(id=999, name="Test Zone", zone_type="Buoy", geom="POINT(0 0)")
-        db.add(zone)
+
+    # ==========================================
+    # 🔥 新增核心代码：清理脏数据 🔥
+    # ==========================================
+    try:
+        # 清空传感器日志表和监测点表，RESTART IDENTITY 重置 ID 计数
+        db.execute(text("TRUNCATE TABLE sensor_logs RESTART IDENTITY CASCADE;"))
+        db.execute(text("TRUNCATE TABLE marine_zones RESTART IDENTITY CASCADE;"))
         db.commit()
+    except Exception as e:
+        print(f"Warning: Clean db failed {e}")
+        db.rollback()
+
+    # 4. 预制基础数据 (GIS 点)
+    # 因为上面清空了表，这里必须重新插入
+    zone = models.MarineZone(
+        id=999,
+        name="Test Zone",
+        zone_type="Buoy",
+        geom="POINT(0 0)"
+    )
+    db.add(zone)
+    db.commit()
 
     yield db
-    
-    # 4. 清理数据 (可选：drop_all)
-    # Base.metadata.drop_all(bind=engine)
+
     db.close()
+
 
 @pytest.fixture(scope="module")
 def client(test_db):
-    # 依赖覆盖：使用测试 Session 替代 main.py 中的 Session
     def override_get_db():
         try:
             yield test_db
         finally:
             test_db.close()
-    
+
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
