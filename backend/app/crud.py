@@ -1,10 +1,18 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from . import models, schemas
 
 
 def get_zones(db: Session):
-    return db.query(models.MarineZone).all()
+    # 2. 修改查询逻辑：
+    # 不使用 db.query(models.MarineZone).all()
+    # 而是显式选择需要的列，并转换 geom 为 Text
+    return db.query(
+        models.MarineZone.id,
+        models.MarineZone.name,
+        models.MarineZone.zone_type,
+        func.ST_AsText(models.MarineZone.geom).label('wkt')  # 将 geom 转为 wkt 字符串
+    ).all()
 
 
 def get_latest_logs(db: Session):

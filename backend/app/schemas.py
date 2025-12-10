@@ -39,8 +39,7 @@ class MarineZoneResponse(BaseModel):
     id: int
     name: str
     zone_type: str
-    # 简化处理：实际项目中可能需要将 WKT 转为 lat/lon 对象
-    # 这里假设前端能处理或后端暂不返回二进制 geometry
+    wkt: Optional[str] = None  # <--- 新增这个字段，用于接收 WKT 字符串
 
     class Config:
         from_attributes = True
