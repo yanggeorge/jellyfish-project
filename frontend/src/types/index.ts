@@ -10,8 +10,8 @@ export interface MarineZone {
   id: number;
   name: string;
   zone_type: string;
-  // 简化处理，实际地图组件可能不需要后端传 geometry 字符串，而是 lat/lng
-  // 这里暂时保留基础信息
+  geom?: string; // 如果后端直接把 Geometry 序列化为了字符串
+  wkt?: string; // 建议后端 Pydantic 返回这个字段
 }
 
 // 传感器日志 (Monitor)
