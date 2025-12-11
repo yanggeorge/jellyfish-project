@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 # 导入本地模块
 from . import models, schemas, crud
 from .database import SessionLocal, engine
+from fastapi import status
+from . import utils
 
 # 创建数据库表
 models.Base.metadata.create_all(bind=engine)
@@ -42,6 +44,23 @@ def get_db():
         db.close()
 
 
+@app.post("/api/auth/login", response_model=schemas.Token)
+def login_for_access_token(user_data: schemas.UserLogin, db: Session = Depends(get_db)):
+    # 1. 查找用户
+    user = db.query(models.User).filter(models.User.username == user_data.username).first()
+
+    # 2. 校验用户是否存在 & 密码是否匹配
+    if not user or not utils.verify_password(user_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="用户名或密码错误",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # 3. 生成 Token
+    access_token = utils.create_access_token(data={"sub": user.username})
+
+    return {"access_token": access_token, "token_type": "bearer"}
 # ================= Monitor Routers =================
 
 @app.get("/api/monitor/zones", response_model=List[schemas.MarineZoneResponse])

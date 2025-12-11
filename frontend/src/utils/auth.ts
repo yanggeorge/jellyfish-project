@@ -17,11 +17,14 @@ export const loginMock = (
   });
 };
 
+// 登出逻辑
 export const logout = () => {
   localStorage.removeItem(TOKEN_KEY);
   window.location.href = "/login";
 };
 
+// 简单判断是否已登录 (Token是否存在)
+// 进阶版：可以在这里解析 JWT 查看是否过期 (exp字段)
 export const isAuthenticated = () => {
   return !!localStorage.getItem(TOKEN_KEY);
 };

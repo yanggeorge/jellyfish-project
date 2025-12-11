@@ -10,7 +10,8 @@ from sqlalchemy import text
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from app.database import SessionLocal, engine, Base
-from app import models, schemas
+from app import models, schemas, utils
+
 
 # 1. 重置数据库 (危险操作，Demo专用)
 def reset_db():
@@ -170,10 +171,27 @@ def insert_sensor_data(db):
     db.commit()
     print(f"成功插入 {len(raw_data_list)} 条传感器记录。")
 
+
+# 新增：创建默认用户
+def create_initial_user(db):
+    print("正在初始化用户数据...")
+    admin_user = db.query(models.User).filter(models.User.username == "admin").first()
+    if not admin_user:
+        user = models.User(
+            username="admin",
+            hashed_password=utils.get_password_hash("admin") # 密码 admin
+        )
+        db.add(user)
+        db.commit()
+        print("✅ 创建默认管理员: admin / admin")
+    else:
+        print("ℹ️ 管理员已存在，跳过创建。")
+
 if __name__ == "__main__":
     db = SessionLocal()
     try:
         reset_db()           # 1. 建表
+        create_initial_user(db)
         create_kg_data(db)   # 2. 插入图谱
         create_zones(db)     # 3. 插入 GIS 点
         insert_sensor_data(db) # 4. 插入传感器数据

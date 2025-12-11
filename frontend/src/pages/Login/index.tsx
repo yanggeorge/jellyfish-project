@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, Card, message, Typography } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { loginMock } from "@/utils/auth";
+import { loginApi } from "@/api/auth";
 
 const { Title } = Typography;
 
@@ -13,13 +13,22 @@ const Login: React.FC = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      const success = await loginMock(values.username, values.password);
-      if (success) {
-        message.success("登录成功，欢迎回来");
-        navigate("/"); // 跳转到仪表盘
-      } else {
-        message.error("用户名或密码错误 (试用: admin/admin)");
+      // 调用真实 API
+      const res = await loginApi({
+        username: values.username,
+        password: values.password,
+      });
+
+      // 后端返回 { access_token: "...", token_type: "bearer" }
+      if (res.access_token) {
+        // 存储 Token
+        localStorage.setItem("jellyfish_auth_token", res.access_token);
+        message.success("登录成功");
+        navigate("/");
       }
+    } catch (error) {
+      // 错误已经在 request.ts 拦截器里弹出了，这里不需要额外处理，或者处理特定逻辑
+      console.error("Login failed", error);
     } finally {
       setLoading(false);
     }
