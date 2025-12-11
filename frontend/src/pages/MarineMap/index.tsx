@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
-import { Card, Spin, Tag, Badge } from "antd";
+import { Card, Spin, Tag, Badge, Radio, Space } from "antd";
+import type { RadioChangeEvent } from "antd";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css"; // 必须引入 CSS
+import "leaflet/dist/leaflet.css";
 import { fetchZones } from "@/api/monitor";
 import { type MarineZone } from "@/types";
 
-// --- 修复 Leaflet 默认 Icon 在 React 构建中丢失的问题 ---
+// --- Leaflet Icon Fix ---
 import iconMarker from "leaflet/dist/images/marker-icon.png";
 import iconRetina from "leaflet/dist/images/marker-icon-2x.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -23,21 +24,55 @@ const DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
-// -------------------------------------------------------
+// ------------------------
+
+// 1. 定义地图源配置
+const MAP_SOURCES = {
+  autonavi: {
+    name: "高德卫星",
+    url: "https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+    attribution: "&copy; AutoNavi",
+  },
+  geoq: {
+    name: "智图深蓝",
+    url: "https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
+    attribution: '&copy; <a href="http://www.geoq.cn/">GeoQ</a>',
+  },
+  carto_dark: {
+    name: "Carto暗黑",
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+  },
+  esri: {
+    name: "Esri影像",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Tiles &copy; Esri",
+  },
+  osm: {
+    name: "OSM标准",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+  },
+};
+
+// 定义 MapKey 类型
+type MapType = keyof typeof MAP_SOURCES;
 
 const MarineMap: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [zones, setZones] = useState<MarineZone[]>([]);
 
-  // WKT 解析工具: 将 "POINT(121.4 35.6)" 解析为 [35.6, 121.4]
+  // 2. 设置当前地图类型状态，默认 'autonavi'
+  const [currentMap, setCurrentMap] = useState<MapType>("autonavi");
+
   const parseWktToLatLng = (wkt?: string): [number, number] | null => {
     if (!wkt) return null;
-    // 简单的正则匹配
     const match = wkt.match(/POINT\s*\(([^ ]+)\s+([^ ]+)\)/);
     if (match && match.length >= 3) {
-      const lng = parseFloat(match[1]); // 经度
-      const lat = parseFloat(match[2]); // 纬度
-      return [lat, lng]; // Leaflet 要求 [lat, lng]
+      const lng = parseFloat(match[1]);
+      const lat = parseFloat(match[2]);
+      return [lat, lng];
     }
     return null;
   };
@@ -57,15 +92,36 @@ const MarineMap: React.FC = () => {
     loadData();
   }, []);
 
-  // 默认中心点 (渤海/黄海区域)
   const centerPosition: [number, number] = [37.5, 121.0];
+
+  // 3. 处理切换事件
+  const handleMapChange = (e: RadioChangeEvent) => {
+    setCurrentMap(e.target.value);
+  };
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Card
         title="GIS 海洋监测网络"
         bodyStyle={{ padding: 0, height: "80vh" }}
-        extra={<Tag color="blue">监测点数: {zones.length}</Tag>}
+        extra={
+          <Space>
+            {/* 4. 添加切换控件 */}
+            <Radio.Group
+              value={currentMap}
+              onChange={handleMapChange}
+              buttonStyle="solid"
+              size="small"
+            >
+              <Radio.Button value="autonavi">高德卫星</Radio.Button>
+              <Radio.Button value="geoq">智图深蓝</Radio.Button>
+              <Radio.Button value="esri">Esri影像</Radio.Button>
+              <Radio.Button value="carto_dark">暗黑模式</Radio.Button>
+              <Radio.Button value="osm">标准地图</Radio.Button>
+            </Radio.Group>
+            <Tag color="blue">监测点: {zones.length}</Tag>
+          </Space>
+        }
       >
         {loading && (
           <div
@@ -90,29 +146,16 @@ const MarineMap: React.FC = () => {
           style={{ height: "100%", width: "100%" }}
           scrollWheelZoom={true}
         >
-          {/* 使用暗黑风格底图，匹配系统主题 */}
-          {/* <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          /> */}
-          {/* 卫星影像图 (Esri World Imagery) */}
-          {/* <TileLayer
-            attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          /> */}
-
-          {/* ：标准彩色地图 (OpenStreetMap) */}
+          {/* 5. 动态渲染 TileLayer */}
+          {/* key={currentMap} 非常重要：它强制 React 在切换时销毁旧图层并创建新图层，避免图层重叠或残留 */}
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            key={currentMap}
+            attribution={MAP_SOURCES[currentMap].attribution}
+            url={MAP_SOURCES[currentMap].url}
           />
 
           {zones.map((zone) => {
-            // 注意：这里假设你的后端返回字段里有 wkt 字符串，或者 geom 字段
-            // 如果后端直接返回 geom 是二进制，你需要调整后端让它返回 WKT 字符串
-            // 在 Python 后端 schema 中建议增加一个 wkt 字段
             const position = parseWktToLatLng(zone.geom || (zone as any).wkt);
-
             if (!position) return null;
 
             return (
