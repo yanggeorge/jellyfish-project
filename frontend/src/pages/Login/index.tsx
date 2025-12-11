@@ -14,21 +14,22 @@ const Login: React.FC = () => {
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      // 调用真实 API
       const res = await loginApi({
         username: values.username,
         password: values.password,
       });
 
-      // 后端返回 { access_token: "...", token_type: "bearer" }
       if (res.access_token) {
-        // 存储 Token
         localStorage.setItem("jellyfish_auth_token", res.access_token);
+
+        // 🔥 新增：保存用户名到 localStorage，供 MainLayout 读取
+        // 实际项目中通常是解析 JWT 的 payload 获取，或者单独调一个 /api/auth/me 接口
+        localStorage.setItem("username", values.username);
+
         message.success("登录成功");
         navigate("/");
       }
     } catch (error) {
-      // 错误已经在 request.ts 拦截器里弹出了，这里不需要额外处理，或者处理特定逻辑
       console.error("Login failed", error);
     } finally {
       setLoading(false);
