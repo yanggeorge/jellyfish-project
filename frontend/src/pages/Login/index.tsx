@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, message, Typography } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { loginApi } from "@/api/auth";
+import logoFull from "@/assets/logo-full.svg";
 
 const { Title } = Typography;
 
@@ -80,12 +81,7 @@ const Login: React.FC = () => {
         bordered={false}
       >
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <Title level={3} style={{ color: "#003a8c", margin: 0 }}>
-            水母爆发预警系统
-          </Title>
-          <span style={{ color: "#8c8c8c" }}>
-            Jellyfish Early Warning System
-          </span>
+          <img src={logoFull} alt="Jellyfish System" style={{ height: 60 }} />
         </div>
 
         <Form

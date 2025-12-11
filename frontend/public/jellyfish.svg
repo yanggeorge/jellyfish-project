@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="bellGradient" x1="50" y1="10" x2="50" y2="70" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00e4ff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#004e92" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="tentacleGradient" x1="50" y1="60" x2="50" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00e4ff"/>
+      <stop offset="1" stop-color="#7000ff"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <path 
+    d="M15,55 C15,20 85,20 85,55 C85,62 80,68 50,68 C20,68 15,62 15,55 Z" 
+    fill="url(#bellGradient)" 
+    filter="url(#glow)"
+  />
+  
+  <circle cx="50" cy="45" r="8" fill="#ffffff" fill-opacity="0.8" />
+  <circle cx="50" cy="45" r="14" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.5" stroke-dasharray="4 2"/>
+
+  <g stroke="url(#tentacleGradient)" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M30,68 Q30,80 20,95" />
+    <path d="M50,68 Q50,85 50,98" stroke-width="5" />
+    <path d="M70,68 Q70,80 80,95" />
+  </g>
+</svg>

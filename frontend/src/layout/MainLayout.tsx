@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { logout } from "@/utils/auth";
+import logoIcon from "/jellyfish.svg";
 
 const { Header, Sider, Content } = Layout;
 
@@ -38,15 +39,21 @@ const MainLayout: React.FC = () => {
           style={{
             height: 64,
             margin: 16,
-            background: "rgba(255, 255, 255, 0.1)",
+            background: "rgba(255, 255, 255, 0.05)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#fff",
-            fontWeight: "bold",
+            borderRadius: 8,
           }}
         >
-          Jellyfish System
+          <img
+            src={logoIcon}
+            alt="logo"
+            style={{ height: 32, marginRight: 10 }}
+          />
+          <span style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>
+            JF-System
+          </span>
         </div>
         <Menu
           theme="dark"
